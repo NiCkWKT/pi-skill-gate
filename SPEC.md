@@ -12,7 +12,7 @@ Verified on `@earendil-works/pi-coding-agent` 1.6.0. The flow is feasible. Do no
 - A model with `supportsMidConvoSystemMessages` keeps the old leading section and also receives `Updated system prompt section "skills"`. That request is not shorter. A model without the flag receives the replayed sections as its leading prompt, so the next request is shorter and misses the cache. The flag is per model, not per provider. Many Claude and OpenAI models in the 1.6.0 catalog do not set it. Leave that behavior alone. A new session is how the leading section is replaced.
 - `/skill:name` reads `resourceLoader.getSkills()`, not the prompt list. Do not intercept `input`.
 - The interactive slash menu is built from built-in commands, prompt templates, extension commands, and `resourceLoader.getSkills()` when skill commands are enabled. `getCommands()` is a separate list and also includes every skill. An extension cannot remove those skill entries.
-- `formatSkillsForPrompt` already omits `disableModelInvocation` skills from the prompt text. They still appear in `skills` and still have `/skill:name`. A check on those rows does not change today's prompt and does not hide `/skill:name`.
+- `formatSkillsForPrompt` already omits `disableModelInvocation` skills from the prompt text. They still appear in `skills` and still have `/skill:name`.
 - No built-in command is named `skills`.
 - A symlink at `~/.pi/agent/extensions/skill-gate` loads when this repo has `package.json` `pi.extensions`. Discovery does not recurse past that manifest.
 - `ctx.cwd` is the session directory after `path.resolve`. It does not resolve symlinks. Use that string as the state key.
@@ -86,11 +86,13 @@ The reported choice says either "all skills" or the saved names. It is the non-T
 
 ### Checklist
 
-Build the rows from `ctx.getSystemPromptOptions().skills`. That list is the prompt input and includes `disableModelInvocation`, `sourceInfo.scope`, and `filePath`. Do not use `getCommands()` as the list. Skill commands can be turned off, and command entries do not carry `disableModelInvocation`.
+Build the rows from `ctx.getSystemPromptOptions().skills`, omitting `disableModelInvocation` skills. That list is the prompt input and includes `sourceInfo.scope` and `filePath`. Do not use `getCommands()` as the list. Skill commands can be turned off, and command entries do not carry `disableModelInvocation`.
 
 No cwd key, or a non-array value: every row starts checked. A string array: a row is checked when its name is in the array.
 
-Each row shows the check, the name, the scope, and the path. A `disableModelInvocation` row also says `command-only`. That mark is a label, not a second switch. The check is saved with the other names, but it does not change today's prompt and does not remove `/skill:name`.
+Each row shows the check, the name, the scope, and the path.
+
+The names passed to save are every name in that input, including omitted `disableModelInvocation` skills. Those names are not checked, so Enter drops them and does not count them as retained. Omitting them does not hide `/skill:name`.
 
 The list scrolls. Keep the cursor row visible. Clip each row to the width. Do not wrap.
 
@@ -102,7 +104,7 @@ Keys, through the injected `keybindings`:
 - `tui.select.confirm` saves and closes.
 - `tui.select.cancel` closes and writes nothing.
 
-Enter saves the checked names, plus stored names that are not in the current row list. A missing key or a non-array value contributes no stored names. Show that retained count in the checklist before save. Then notify that the choice is saved, that a new session records only the checked descriptions, and that this extension does not rewrite an open conversation.
+Enter saves the checked names, plus stored names that are not in the names passed to save. A missing key or a non-array value contributes no stored names. Show that retained count in the checklist before save. Then notify that the choice is saved, that a new session records only the checked descriptions, and that this extension does not rewrite an open conversation.
 
 If the JSON is invalid or the root is not an object, Enter notifies, closes, and writes nothing.
 

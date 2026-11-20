@@ -29,7 +29,6 @@ interface SkillRow {
 	name: string;
 	scope: string;
 	filePath: string;
-	commandOnly: boolean;
 	checked: boolean;
 }
 
@@ -146,15 +145,17 @@ function notifyMutation(ctx: ExtensionCommandContext, result: MutationResult, ac
 
 async function openChecklist(ctx: ExtensionCommandContext, state: GateState): Promise<void> {
 	const skills = ctx.getSystemPromptOptions().skills ?? [];
+	// Include hidden skills in the save list so Enter drops them instead of retaining them.
 	const rowNames = skills.map((skill) => skill.name);
 	const names = allowedNames(state);
-	const rows: SkillRow[] = skills.map((skill) => ({
-		name: skill.name,
-		scope: skill.sourceInfo.scope,
-		filePath: skill.filePath,
-		commandOnly: skill.disableModelInvocation,
-		checked: names ? names.includes(skill.name) : true,
-	}));
+	const rows: SkillRow[] = skills
+		.filter((skill) => !skill.disableModelInvocation)
+		.map((skill) => ({
+			name: skill.name,
+			scope: skill.sourceInfo.scope,
+			filePath: skill.filePath,
+			checked: names ? names.includes(skill.name) : true,
+		}));
 	const retained = retainedNames(names, rowNames).length;
 	const notice = checklistNotice(state);
 
@@ -290,9 +291,8 @@ function visibleSkillRows(terminalRows: number, rowCount: number, extraLines: nu
 
 function renderRow(theme: Theme, row: SkillRow, selected: boolean): string {
 	const mark = row.checked ? "[x]" : "[ ]";
-	const commandOnly = row.commandOnly ? "  command-only" : "";
 	const text = replaceControlCharacters(
-		`${selected ? ">" : " "} ${mark} ${row.name}${commandOnly}  ${row.scope}  ${row.filePath}`,
+		`${selected ? ">" : " "} ${mark} ${row.name}  ${row.scope}  ${row.filePath}`,
 	);
 	if (selected) return theme.fg("accent", text);
 	if (!row.checked) return theme.fg("dim", text);

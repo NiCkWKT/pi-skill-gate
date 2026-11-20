@@ -92,7 +92,7 @@ Open Pi in the project whose skills you want to filter, then run:
 /skills
 ```
 
-The first time, every skill is checked, which is the same as today's prompt. A row marked `command-only` is already hidden from the model. Clearing that row does not change the descriptions.
+The first time, every skill is checked, which is the same as today's prompt. A skill Pi already hides from the model is not in the list.
 
 | Key | Action |
 | --- | --- |

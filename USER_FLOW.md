@@ -6,7 +6,7 @@ You open Pi in a project directory. You use `/skills` to choose which skill desc
 
 The state file has no record for this directory. The model sees every skill description, as it does today.
 
-You run `/skills`. Every skill in the list is checked. A row marked command-only is already hidden from the model. Clearing it does not change the descriptions. Space clears a check. Enter saves. Escape does not save, and nothing changes.
+You run `/skills`. Every skill in the list is checked. Skills Pi already hides from the model are not in the list. Space clears a check. Enter saves. Escape does not save, and nothing changes.
 
 ## After you save
 
