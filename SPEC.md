@@ -20,7 +20,8 @@ Verified on `@earendil-works/pi-coding-agent` 1.6.0. The flow is feasible. Do no
 ## Files
 
 ```
-package.json          pi.extensions: ["./src/index.ts"]
+package.json          pi.extensions: ["./index.ts"]
+index.ts              re-exports src/index.ts so the footer label is the link name
 src/store.ts          state file rules, no Pi imports
 src/index.ts          command, checklist, before_agent_start
 test/store.test.ts    node:test

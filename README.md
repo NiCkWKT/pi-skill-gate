@@ -16,11 +16,13 @@ The repository root has a `package.json` with:
 
 ```json
 "pi": {
-  "extensions": ["./src/index.ts"]
+  "extensions": ["./index.ts"]
 }
 ```
 
-Pi discovers that manifest one directory below `extensions/`. It does not walk further. The entry point also imports `./store.ts`, so the linked directory has to be this repository, not a single file.
+`index.ts` re-exports `src/index.ts`. The entry has to sit at the repository root: Pi's footer drops a trailing `index.ts` and shows the last remaining path segment. With this layout, a link named `skill-gate` shows up as `skill-gate`, not `src`.
+
+Pi discovers that manifest one directory below `extensions/`. It does not walk further. The implementation also imports `./store.ts`, so the linked directory has to be this repository, not a single file.
 
 No `npm install` is required to use it. Pi loads the TypeScript and supplies its own packages.
 
@@ -41,7 +43,7 @@ mkdir -p ~/.pi/agent/extensions
 ln -s ~/src/pi-skill-gate ~/.pi/agent/extensions/skill-gate
 ```
 
-The link name can be anything. `skill-gate` is only a label. The link must point at the repository root, the directory that contains `package.json`.
+Name the link `skill-gate`. Pi shows that directory name in the footer. The link must point at the repository root, the directory that contains `package.json`.
 
 Do not add an `extensions` or `packages` entry to `settings.json` for this install. The symlink is enough, and `/reload` can see it.
 
