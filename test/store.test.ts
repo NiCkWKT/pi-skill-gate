@@ -16,6 +16,7 @@ import { afterEach, describe, it } from "node:test";
 import {
 	allowedNames,
 	files,
+	LOCK_FILENAME,
 	mergeSavedNames,
 	readGate,
 	resetCwd,
@@ -273,6 +274,7 @@ describe("skill gate store", { concurrency: 1 }, () => {
 			assert.match(calls[0]?.from ?? "", /\.tmp$/);
 			assert.equal(readFileSync(dest, "utf8"), calls[0]?.body);
 			assert.equal(existsSync(calls[0]?.from ?? ""), false);
+			assert.equal(existsSync(join(dir, LOCK_FILENAME)), false);
 			assert.deepEqual(
 				readdirSync(dir).filter((name) => name.endsWith(".tmp")),
 				[],
@@ -280,6 +282,37 @@ describe("skill gate store", { concurrency: 1 }, () => {
 		} finally {
 			files.renameSync = original;
 		}
+	});
+
+	it("removes a stale lock and still preserves other keys", () => {
+		const dir = tempAgentDir();
+		writeState(dir, { "/other": ["keep"] });
+		writeFileSync(join(dir, LOCK_FILENAME), "not-a-pid\n");
+		assert.deepEqual(saveSelection(dir, "/work", ["github-work"], ["github-work"]), {
+			ok: true,
+			wrote: true,
+		});
+		assert.deepEqual(readJson(dir), { "/other": ["keep"], "/work": ["github-work"] });
+		assert.equal(existsSync(join(dir, LOCK_FILENAME)), false);
+
+		writeFileSync(join(dir, LOCK_FILENAME), "2147483647\n");
+		assert.equal(resetCwd(dir, "/work").ok, true);
+		assert.deepEqual(readJson(dir), { "/other": ["keep"] });
+		assert.equal(existsSync(join(dir, LOCK_FILENAME)), false);
+	});
+
+	it("does not replace the state file while this process holds the lock", () => {
+		const dir = tempAgentDir();
+		writeState(dir, { "/other": ["keep"], "/work": ["github-work"] });
+		writeFileSync(join(dir, LOCK_FILENAME), `${process.pid}\n`);
+		const saved = saveSelection(dir, "/work", ["code-review"], ["github-work", "code-review"]);
+		const reset = resetCwd(dir, "/work");
+		assert.equal(saved.ok, false);
+		assert.equal(saved.ok === false && saved.reason, "write-failed");
+		assert.equal(reset.ok, false);
+		assert.equal(reset.ok === false && reset.reason, "write-failed");
+		assert.deepEqual(readJson(dir), { "/other": ["keep"], "/work": ["github-work"] });
+		assert.equal(readFileSync(join(dir, LOCK_FILENAME), "utf8"), `${process.pid}\n`);
 	});
 
 	it("leaves the previous file in place when rename fails", () => {
