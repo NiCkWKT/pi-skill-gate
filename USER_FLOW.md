@@ -6,7 +6,7 @@ You open Pi in a project directory. You use `/skills` to choose which skill desc
 
 The state file has no record for this directory. The model sees every skill description, as it does today.
 
-You run `/skills`. Every skill in the list is checked. Space clears a check. Enter saves. Escape does not save, and nothing changes.
+You run `/skills`. Every skill in the list is checked. A row marked command-only is already hidden from the model. Clearing it does not change the descriptions. Space clears a check. Enter saves. Escape does not save, and nothing changes.
 
 ## After you save
 
@@ -16,11 +16,13 @@ A new conversation in this directory includes only the checked skill description
 
 ## A conversation that is already open
 
-Claude and OpenAI keep the old descriptions already written at the start of the conversation. A save does not make that prompt shorter. Open a new session in this directory to drop them. `/new` keeps the same selection.
+Saving does not rewrite the descriptions already stored at the start of the conversation. Pi may send a later update on the next request. This extension does not shorten that conversation. Open a new session in this directory to replace the leading descriptions. `/new` keeps the same selection.
 
 ## Other directories
 
 A directory with no record still shows every skill. The selection is in `~/.pi/agent/skill-gates.json` on your machine. It is not written into the project, and it does not travel with the repository.
+
+If that file is present but unreadable, this directory still shows every skill, and `/skills` does not save over it.
 
 ## Skills you install later
 

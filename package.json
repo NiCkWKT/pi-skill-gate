@@ -1,0 +1,11 @@
+{
+  "name": "pi-skill-gate",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-strip-types --test test/store.test.ts"
+  },
+  "pi": {
+    "extensions": ["./src/index.ts"]
+  }
+}
